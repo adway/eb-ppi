@@ -1,0 +1,23 @@
+{
+  "n_1": [100, 1000, 10000],
+  "n_2_multiplier": [10, 100, 1000],
+  "mu": 3.0,
+  "delta": [0.0, 0.1, 1.0, 5.0, 10.0],
+  "rho": [0.0, 0.25, 0.5, 0.75, 0.8],
+  "sigma1": 1.0,
+  "sigma2": 1.0,
+  "sigma3": 1.0,
+  "replicates": 100000,
+  "seed": null,
+  "jobs": 100,
+  "output_dir": "results",
+  "log_dir": "run_logs",
+  "slurm": {
+    "job_name": "eb_ppi",
+    "partition": "standard",
+    "account": "stats_dept1",
+    "time_minutes": 60,
+    "memory": "4G",
+    "cpus_per_task": 1
+  }
+}
