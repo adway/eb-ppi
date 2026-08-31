@@ -2,9 +2,9 @@
 # Combine completed simulation chunks into replicate and summary CSVs.
 # Usage: sbatch slurm/combine_results.sh [results-directory]
 #SBATCH --job-name=eb_ppi_combine
-#SBATCH --output=slurm-%x-%j.out
-#SBATCH --error=slurm-%x-%j.err
-#SBATCH --account=YOUR_SLURM_ACCOUNT
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH --account=stats_dept1
 #SBATCH --partition=standard
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -12,9 +12,9 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-INPUT="${1:-results/example}"
+INPUT="${1:-results}"
 
+PROJECT_ROOT="$HOME/eb-ppi"
 cd "$PROJECT_ROOT"
 mkdir -p logs
 export PYTHONPATH="$PROJECT_ROOT/src:${PYTHONPATH:-}"

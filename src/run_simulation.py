@@ -36,7 +36,7 @@ def load_tasks(path: Path) -> tuple[dict, list[dict]]:
         raise ValueError(f"Missing config fields: {sorted(missing)}")
     fields = ["n_1", "n_2_multiplier", "mu", "delta", "rho", "sigma1", "sigma2", "sigma3"]
     tasks = []
-    for values in itertools.product(*[_values(config[f]) for f in fields]):
+    for scenario_id, values in enumerate(itertools.product(*[_values(config[f]) for f in fields])):
         setting = dict(zip(fields, values))
         n1 = int(setting.pop("n_1"))
         multiplier = setting.pop("n_2_multiplier")
@@ -47,7 +47,7 @@ def load_tasks(path: Path) -> tuple[dict, list[dict]]:
         setting.update({"n1": n1, "n2": int(n2_float), "delta_f": delta, "delta_c": delta})
         for rep in range(int(config["replicates"])):
             task = dict(setting, rep=rep)
-            task["scenario_id"] = len(tasks)  # stable identifier before shuffling
+            task["scenario_id"] = scenario_id  # shared by all replicates in this scenario
             tasks.append(task)
     configured_seed = config.get("seed")
     if configured_seed is None:

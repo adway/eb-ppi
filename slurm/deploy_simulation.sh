@@ -3,9 +3,9 @@
 # Usage: sbatch slurm/deploy_simulation.sh [config.json]
 # Set the account below (or override it with: sbatch --account=... ...).
 #SBATCH --job-name=eb_ppi_submit
-#SBATCH --output=slurm-%x-%j.out
-#SBATCH --error=slurm-%x-%j.err
-#SBATCH --account=YOUR_SLURM_ACCOUNT
+#SBATCH --output=logs/%x-%j.out
+#SBATCH --error=logs/%x-%j.err
+#SBATCH --account=stats_dept1
 #SBATCH --partition=standard
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
@@ -13,9 +13,9 @@
 
 set -euo pipefail
 
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CONFIG="${1:-configs/example.json}"
 
+PROJECT_ROOT="$HOME/eb-ppi"
 cd "$PROJECT_ROOT"
 mkdir -p logs run_logs results
 
