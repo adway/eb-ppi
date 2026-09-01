@@ -78,7 +78,7 @@ def ppi_plus_plus(y: np.ndarray, n1: int, n2: int, cov_y: np.ndarray, lam: float
              + n1 * (y[1] - f_bar) ** 2 + n2 * (y[2] - f_bar) ** 2) / (n1 + n2 - 1)
     var_f = max(float(var_f), np.finfo(float).eps)
     if lam is None:
-        lam = float(cov_y[0, 1] / ((1 + n1 / n2) * var_f))
+        lam = float((n1 * cov_y[0, 1]) / ((1 + n1 / n2) * var_f))
     estimate = ppi(y, lam)
     # Conditional plug-in variance of Y1 + lam(Y3 - Y2).
     return estimate
