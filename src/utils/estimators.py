@@ -63,22 +63,41 @@ def ppi(y: np.ndarray, lam: float = 1.0) -> float:
     return float(y[0] + lam * (y[2] - y[1]))
 
 
-def ppi_plus_plus(y: np.ndarray, n1: int, n2: int, cov_y: np.ndarray, lam: float | None = None) -> float:
-    """Return the PPI++ point estimate.
+def ppi_plus_plus(
+    y: np.ndarray,
+    n1: int,
+    n2: int,
+    cov_y: np.ndarray,
+    lam: float | None = None,
+) -> float:
 
-    ``lam=None`` selects the estimated variance-minimizing lambda. The
-    The covariance estimate is used only to select the variance-minimizing
-    lambda; uncertainty estimates are intentionally outside this API.
-    """
     y, cov_y = _inputs(y, cov_y)
+
     if n1 < 2 or n2 < 2:
         raise ValueError("n1 and n2 must both be at least 2")
+
     f_bar = (n1 * y[1] + n2 * y[2]) / (n1 + n2)
-    var_f = ((n1 - 1) * cov_y[1, 1] + (n2 - 1) * cov_y[2, 2]
-             + n1 * (y[1] - f_bar) ** 2 + n2 * (y[2] - f_bar) ** 2) / (n1 + n2 - 1)
+
+    # Recover observation-level variances
+    var_f1 = n1 * cov_y[1, 1]
+    var_f2 = n2 * cov_y[2, 2]
+
+    # Pooled variance of all n1 + n2 predictions
+    var_f = (
+        (n1 - 1) * var_f1
+        + (n2 - 1) * var_f2
+        + n1 * (y[1] - f_bar) ** 2
+        + n2 * (y[2] - f_bar) ** 2
+    ) / (n1 + n2 - 1)
+
     var_f = max(float(var_f), np.finfo(float).eps)
+
     if lam is None:
-        lam = float((n1 * cov_y[0, 1]) / ((1 + n1 / n2) * var_f))
-    estimate = ppi(y, lam)
-    # Conditional plug-in variance of Y1 + lam(Y3 - Y2).
-    return estimate
+        # Recover observation-level Cov(Y, f(X))
+        cov_yf = n1 * cov_y[0, 1]
+
+        lam = float(
+            cov_yf / ((1 + n1 / n2) * var_f)
+        )
+
+    return ppi(y, lam)

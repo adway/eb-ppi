@@ -40,6 +40,6 @@ def run_task_chunk(chunk_id: int, tasks: list[dict], output_dir: str) -> str:
             rows.append(run_one(task))
         except Exception as exc:
             rows.append({**task, "error": repr(exc)})
-    path = output / f"results_chunk_{chunk_id:04d}.csv"
-    pd.DataFrame(rows).to_csv(path, index=False)
+    path = output / f"results_chunk_{chunk_id:04d}.parquet"
+    pd.DataFrame(rows).to_parquet(path, index=False)
     return str(path)

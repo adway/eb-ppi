@@ -25,4 +25,4 @@ sbatch slurm/deploy_simulation.sh configs/example.json
 sbatch slurm/combine_results.sh results/example
 ```
 
-Each replicate has a deterministic independent seed. Submitit jobs write checkpoint files named `results_chunk_XXXX.csv`, so completed chunks remain usable if a job needs to be retried. The combined replicate-level data and grouped Monte Carlo summary (bias, Monte Carlo variance, and MSE) are written by `combine_results.py`.
+Each replicate has a deterministic independent seed. Submitit jobs write checkpoint files named `results_chunk_XXXX.parquet`, so completed chunks remain usable if a job needs to be retried. The combined intermediate replicate-level data is written as `replicate_results.parquet`; the final grouped Monte Carlo summary (bias, Monte Carlo variance, and MSE) is written as `summary.csv` by `combine_results.py`.

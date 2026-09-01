@@ -1,4 +1,4 @@
-"""Combine chunk CSVs and summarize Monte Carlo performance."""
+"""Combine Parquet chunks and summarize Monte Carlo performance."""
 
 from __future__ import annotations
 
@@ -12,12 +12,12 @@ def main():
     parser.add_argument("--input", type=Path, default=Path("results"))
     parser.add_argument("--output", type=Path, default=None)
     args = parser.parse_args()
-    files = sorted(args.input.glob("results_chunk_*.csv"))
+    files = sorted(args.input.glob("results_chunk_*.parquet"))
     if not files:
         raise FileNotFoundError(f"No chunk files found in {args.input}")
-    raw = pd.concat((pd.read_csv(path) for path in files), ignore_index=True)
-    raw_path = args.output or args.input / "replicate_results.csv"
-    raw.to_csv(raw_path, index=False)
+    raw = pd.concat((pd.read_parquet(path) for path in files), ignore_index=True)
+    raw_path = args.output or args.input / "replicate_results.parquet"
+    raw.to_parquet(raw_path, index=False)
     methods = ["eb", "ppi", "ppi_plus_plus"]
     failed = raw["error"].notna() if "error" in raw else pd.Series(False, index=raw.index)
     usable = raw.loc[~failed].copy()

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Combine completed simulation chunks into replicate and summary CSVs.
+# Combine completed simulation chunks into replicate and summary Parquet files.
 # Usage: sbatch slurm/combine_results.sh [results-directory]
 #SBATCH --job-name=eb_ppi_combine
 #SBATCH --output=logs/%x-%j.out
@@ -7,7 +7,7 @@
 #SBATCH --account=stats_dept1
 #SBATCH --partition=standard
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --mem=16G
 #SBATCH --time=10:00
 
 set -euo pipefail

@@ -8,7 +8,7 @@
 #SBATCH --account=stats_dept1
 #SBATCH --partition=standard
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --mem=16G
 #SBATCH --time=10:00
 
 set -euo pipefail
