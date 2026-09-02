@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from utils.data_generation import generate_data
-from utils.estimators import eb, ppi, ppi_plus_plus
+from utils.estimators import eb, ppi, ppi_plus_plus, ppi_plus_plus_oracle
 
 
 def run_one(params: dict, seed: int | None = None) -> dict:
@@ -22,6 +22,18 @@ def run_one(params: dict, seed: int | None = None) -> dict:
     pp_hat = ppi_plus_plus(y, params["n1"], params["n2"], cov_y)
     truth = float(params["mu"])
     estimates = {"eb": eb_hat, "ppi": ppi_hat, "ppi_plus_plus": pp_hat}
+    if params.get("ppi_plus_plus_oracle", False):
+        estimates["ppi_plus_plus_oracle"] = ppi_plus_plus_oracle(
+            y,
+            params["n1"],
+            params["n2"],
+            params["sigma1"],
+            params["sigma2"],
+            params["sigma3"],
+            params["rho"],
+            params["delta_f"],
+            params["delta_c"],
+        )
     row = dict(params)
     row["seed"] = seed
     for name, estimate in estimates.items():

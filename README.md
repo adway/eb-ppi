@@ -4,6 +4,8 @@ The simulation is configured in JSON. Scalar fields define one setting; list-val
 
 Set an integer `seed` for reproducible runs. You can also omit `seed` or set it to `null` to generate fresh seeds from system entropy.
 
+Set `ppi_plus_plus_oracle` to `true` to compute `ppi_plus_plus_oracle` alongside the estimated `ppi_plus_plus`. The oracle uses the configured population values of `sigma1`, `sigma2`, `sigma3`, `rho`, `delta_f`, and `delta_c` when selecting its PPI++ weight.
+
 From the project root:
 
 ```bash

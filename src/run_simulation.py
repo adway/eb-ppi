@@ -59,6 +59,7 @@ def load_tasks(path: Path) -> tuple[dict, list[dict]]:
         seeds = base_seed + np.arange(len(tasks), dtype=np.int64)
     for task, seed in zip(tasks, seeds):
         task["seed"] = int(seed)
+        task["ppi_plus_plus_oracle"] = bool(config.get("ppi_plus_plus_oracle", False))
     return config, tasks
 
 

@@ -101,3 +101,40 @@ def ppi_plus_plus(
         )
 
     return ppi(y, lam)
+
+
+def ppi_plus_plus_oracle(
+    y: np.ndarray,
+    n1: int,
+    n2: int,
+    sigma1: float,
+    sigma2: float,
+    sigma3: float,
+    rho: float,
+    delta_f: float = 0.0,
+    delta_c: float = 0.0,
+) -> float:
+    """PPI++ using the population covariance and pooled prediction variance.
+
+    This is the oracle counterpart of :func:`ppi_plus_plus`: it replaces the
+    sample covariance entries and pooled variance with their data-generating
+    values. The pooled variance includes the difference between the two
+    prediction means, matching the finite-sample pooled-variance target used
+    by ``ppi_plus_plus``.
+    """
+    y, _ = _inputs(y, np.eye(3))
+    if n1 < 2 or n2 < 2:
+        raise ValueError("n1 and n2 must both be at least 2")
+    if min(sigma1, sigma2, sigma3) <= 0 or abs(rho) >= 1:
+        raise ValueError("standard deviations must be positive and |rho| < 1")
+
+    f_bar = (n1 * delta_f + n2 * delta_c) / (n1 + n2)
+    var_f = (
+        (n1 - 1) * sigma2**2
+        + (n2 - 1) * sigma3**2
+        + n1 * (delta_f - f_bar) ** 2
+        + n2 * (delta_c - f_bar) ** 2
+    ) / (n1 + n2 - 1)
+    cov_yf = rho * sigma1 * sigma2
+    lam = cov_yf / ((1 + n1 / n2) * var_f)
+    return ppi(y, float(lam))
