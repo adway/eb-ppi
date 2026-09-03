@@ -14,7 +14,6 @@ from pathlib import Path
 import sys
 
 import numpy as np
-import submitit
 
 SRC = Path(__file__).resolve().parent
 ROOT = SRC.parent
@@ -23,43 +22,53 @@ sys.path.insert(0, str(SRC))
 from simulation_helpers.runner import run_task_chunk
 
 
-def _values(value):
-    return value if isinstance(value, list) else [value]
-
-
-def load_tasks(path: Path) -> tuple[dict, list[dict]]:
+def load_tasks(path: Path):
     """Load JSON and expand list-valued fields into a Cartesian parameter grid."""
     config = json.loads(path.read_text())
-    required = {"n_1", "n_2_multiplier", "mu", "delta", "rho", "sigma1", "sigma2", "sigma3", "replicates", "slurm"}
+    required = {
+        "n_1", "n_2_multiplier", "mu", "rho", "sigma1", "sigma2",
+        "sigma3", "replicates", "slurm",
+    }
+    has_delta_pair = "delta_f" in config and "delta_c" in config
+    if "delta" not in config and not has_delta_pair:
+        raise ValueError("Config must contain delta, or both delta_f and delta_c")
+    if "delta" in config and has_delta_pair:
+        raise ValueError("Use either delta or delta_f/delta_c, not both")
     missing = required - config.keys()
     if missing:
         raise ValueError(f"Missing config fields: {sorted(missing)}")
-    fields = ["n_1", "n_2_multiplier", "mu", "delta", "rho", "sigma1", "sigma2", "sigma3"]
+
+    delta_fields = ["delta"] if "delta" in config else ["delta_f", "delta_c"]
+    fields = ["n_1", "n_2_multiplier", "mu", *delta_fields,
+              "rho", "sigma1", "sigma2", "sigma3"]
     tasks = []
-    for scenario_id, values in enumerate(itertools.product(*[_values(config[f]) for f in fields])):
-        setting = dict(zip(fields, values))
+    values = [config[field] if isinstance(config[field], list)
+              else [config[field]] for field in fields]
+    for scenario_id, combination in enumerate(itertools.product(*values)):
+        setting = dict(zip(fields, combination))
         n1 = int(setting.pop("n_1"))
         multiplier = setting.pop("n_2_multiplier")
-        n2_float = n1 * float(multiplier)
-        if n2_float != int(n2_float):
+        n2 = n1 * float(multiplier)
+        if n2 % 1:
             raise ValueError(f"n_2_multiplier={multiplier} gives noninteger n2 for n1={n1}")
-        delta = setting.pop("delta")
-        setting.update({"n1": n1, "n2": int(n2_float), "delta_f": delta, "delta_c": delta})
-        for rep in range(int(config["replicates"])):
-            task = dict(setting, rep=rep)
-            task["scenario_id"] = scenario_id  # shared by all replicates in this scenario
-            tasks.append(task)
+        setting["n1"] = n1
+        setting["n2"] = int(n2)
+        if "delta" in setting:
+            setting["delta_f"] = setting["delta_c"] = setting.pop("delta")
+        for rep in range(config["replicates"]):
+            tasks.append({**setting, "rep": rep, "scenario_id": scenario_id})
     configured_seed = config.get("seed")
     if configured_seed is None:
         # SeedSequence obtains entropy from the operating system. Each task
         # still receives its own seed, so task order does not share RNG state.
         seeds = np.random.default_rng().integers(0, 2**63 - 1, size=len(tasks), dtype=np.int64)
     else:
-        base_seed = int(configured_seed)
+        base_seed = configured_seed
         seeds = base_seed + np.arange(len(tasks), dtype=np.int64)
     for task, seed in zip(tasks, seeds):
         task["seed"] = int(seed)
-        task["ppi_plus_plus_oracle"] = bool(config.get("ppi_plus_plus_oracle", False))
+        task["ppi_plus_plus_oracle"] = config.get("ppi_plus_plus_oracle", False)
+        task["ppi_plus_plus_lrt"] = config.get("ppi_plus_plus_lrt", True)
     return config, tasks
 
 
@@ -89,6 +98,8 @@ def main():
             run_task_chunk(chunk_id, chunk, str(output_dir))
         print(f"Completed {len(tasks)} replicates in {len(chunks)} local chunks.")
         return
+    import submitit
+
     log_dir.mkdir(parents=True, exist_ok=True)
     executor = submitit.AutoExecutor(folder=str(log_dir))
     slurm = config["slurm"]

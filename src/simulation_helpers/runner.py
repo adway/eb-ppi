@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 
 from utils.data_generation import generate_data
-from utils.estimators import eb, ppi, ppi_plus_plus, ppi_plus_plus_oracle
+from utils.estimators import eb, ppi, ppi_plus_plus, ppi_plus_plus_lrt, ppi_plus_plus_oracle
 
 
 def run_one(params: dict, seed: int | None = None) -> dict:
@@ -16,12 +16,27 @@ def run_one(params: dict, seed: int | None = None) -> dict:
     seed = params["seed"] if seed is None else seed
     rng = np.random.default_rng(seed)
     data_keys = ("n1", "n2", "mu", "delta_f", "delta_c", "sigma1", "sigma2", "sigma3", "rho")
-    y, cov_y = generate_data(rng=rng, **{key: params[key] for key in data_keys})
+    y, cov_y, y12, y3 = generate_data(
+        rng=rng, return_samples=True, **{key: params[key] for key in data_keys}
+    )
     eb_hat = eb(y, params["n1"], params["n2"], params["sigma1"], params["sigma2"], params["sigma3"], params["rho"])
     ppi_hat = ppi(y)
     pp_hat = ppi_plus_plus(y, params["n1"], params["n2"], cov_y)
-    truth = float(params["mu"])
     estimates = {"eb": eb_hat, "ppi": ppi_hat, "ppi_plus_plus": pp_hat}
+    if params.get("ppi_plus_plus_lrt", False):
+        estimates["ppi_plus_plus_lrt"] = ppi_plus_plus_lrt(
+            y,
+            params["n1"],
+            params["n2"],
+            cov_y,
+            y12[:, 1],
+            y3,
+            params["mu"],
+            params["delta_f"],
+            params["delta_c"],
+            params["sigma2"],
+            params["sigma3"],
+        )
     if params.get("ppi_plus_plus_oracle", False):
         estimates["ppi_plus_plus_oracle"] = ppi_plus_plus_oracle(
             y,
@@ -34,6 +49,7 @@ def run_one(params: dict, seed: int | None = None) -> dict:
             params["delta_f"],
             params["delta_c"],
         )
+    truth = float(params["mu"])
     row = dict(params)
     row["seed"] = seed
     for name, estimate in estimates.items():

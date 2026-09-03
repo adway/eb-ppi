@@ -19,6 +19,8 @@ def main():
     raw_path = args.output or args.input / "replicate_results.parquet"
     raw.to_parquet(raw_path, index=False)
     methods = ["eb", "ppi", "ppi_plus_plus"]
+    if "ppi_plus_plus_lrt_estimate" in raw:
+        methods.append("ppi_plus_plus_lrt")
     if "ppi_plus_plus_oracle_estimate" in raw:
         methods.append("ppi_plus_plus_oracle")
     failed = raw["error"].notna() if "error" in raw else pd.Series(False, index=raw.index)

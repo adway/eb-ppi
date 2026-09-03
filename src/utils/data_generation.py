@@ -7,8 +7,9 @@ import numpy as np
 
 def generate_data(n1: int, n2: int, mu: float, delta_f: float, delta_c: float,
                   sigma1: float, sigma2: float, sigma3: float, rho: float,
-                  rng: np.random.Generator) -> tuple[np.ndarray, np.ndarray]:
-    """Generate sample means and an unbiased covariance estimate."""
+                  rng: np.random.Generator,
+                  return_samples: bool = False) -> tuple:
+    """Generate sample means and covariance, optionally retaining raw samples."""
     if n1 < 2 or n2 < 2:
         raise ValueError("n1 and n2 must be at least 2")
     if min(sigma1, sigma2, sigma3) <= 0 or abs(rho) >= 1:
@@ -23,4 +24,6 @@ def generate_data(n1: int, n2: int, mu: float, delta_f: float, delta_c: float,
     cov_y = np.array([[s12[0, 0] / n1, s12[0, 1] / n1, 0.0],
                       [s12[1, 0] / n1, s12[1, 1] / n1, 0.0],
                       [0.0, 0.0, s3 / n2]])
+    if return_samples:
+        return y, cov_y, y12, y3
     return y, cov_y

@@ -103,6 +103,60 @@ def ppi_plus_plus(
     return ppi(y, lam)
 
 
+def ppi_plus_plus_lrt(
+    y: np.ndarray, n1: int, n2: int, cov_y: np.ndarray,
+    y2: np.ndarray, y3: np.ndarray, mu: float, delta_f: float, delta_c: float,
+    sigma2: float, sigma3: float,
+) -> float:
+    """LRT-weighted PPI++ for prediction samples with different means.
+
+    Each third-component observation is weighted by the normal likelihood
+    ratio ``p_2(x) / p_3(x)`` using the true population means ``mu + delta_f``
+    and ``mu + delta_c`` and true population variances ``sigma2**2`` and
+    ``sigma3**2``. The weighted third mean and variance are then used in the
+    usual PPI++ pooled-variance lambda.
+    """
+    y, cov_y = _inputs(y, cov_y)
+    y2, y3 = np.asarray(y2, dtype=float), np.asarray(y3, dtype=float)
+    if y2.ndim != 1 or len(y2) != n1 or y3.ndim != 1 or len(y3) != n2:
+        raise ValueError("y2 and y3 must be one-dimensional samples of lengths n1 and n2")
+    if not np.all(np.isfinite(y2)) or not np.all(np.isfinite(y3)):
+        raise ValueError("y2 and y3 must contain only finite values")
+    if n1 < 2 or n2 < 2:
+        raise ValueError("n1 and n2 must both be at least 2")
+    if sigma2 <= 0 or sigma3 <= 0:
+        raise ValueError("the second and third prediction standard deviations must be positive")
+    var2, var3 = float(sigma2**2), float(sigma3**2)
+
+    log_lrt = (
+        -0.5 * (
+            (y3 - (mu + delta_f)) ** 2 / var2
+            - (y3 - (mu + delta_c)) ** 2 / var3
+        )
+        - 0.5 * np.log(var2 / var3)
+    )
+    weights = np.exp(log_lrt - np.max(log_lrt))
+    weight_sum = float(weights.sum())
+    if not np.isfinite(weight_sum) or weight_sum <= 0:
+        raise ValueError("could not form finite LRT weights")
+    weighted_mean3 = float(np.dot(weights, y3) / weight_sum)
+    weights *= n2 / weight_sum
+    weighted_sum = float(weights.sum())
+    effective_denom = weighted_sum - float(np.dot(weights, weights) / weighted_sum)
+    if effective_denom <= 0:
+        raise ValueError("LRT weights have insufficient effective sample size")
+    weighted_var3 = float(np.dot(weights, (y3 - weighted_mean3) ** 2) / effective_denom)
+
+    f_bar = (n1 * y[1] + n2 * weighted_mean3) / (n1 + n2)
+    var_f = (
+        (n1 - 1) * var2 + (n2 - 1) * weighted_var3
+        + n1 * (y[1] - f_bar) ** 2 + n2 * (weighted_mean3 - f_bar) ** 2
+    ) / (n1 + n2 - 1)
+    var_f = max(float(var_f), np.finfo(float).eps)
+    lam = (n1 * cov_y[0, 1]) / ((1 + n1 / n2) * var_f)
+    return float(y[0] + lam * (weighted_mean3 - y[1]))
+
+
 def ppi_plus_plus_oracle(
     y: np.ndarray,
     n1: int,

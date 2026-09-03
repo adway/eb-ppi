@@ -1,10 +1,12 @@
 # EB/PPI simulation study
 
-The simulation is configured in JSON. Scalar fields define one setting; list-valued fields are crossed to form a grid. `n_2` is derived as `n_2_multiplier * n_1`, and `delta` is used for both `delta_f` and `delta_c` as requested.
+The simulation is configured in JSON. Scalar fields define one setting; list-valued fields are crossed to form a grid. `n_2` is derived as `n_2_multiplier * n_1`. Use legacy `delta` for a common shift, or specify `delta_f` and `delta_c` separately (including lists) to study varying shifts.
 
 Set an integer `seed` for reproducible runs. You can also omit `seed` or set it to `null` to generate fresh seeds from system entropy.
 
 Set `ppi_plus_plus_oracle` to `true` to compute `ppi_plus_plus_oracle` alongside the estimated `ppi_plus_plus`. The oracle uses the configured population values of `sigma1`, `sigma2`, `sigma3`, `rho`, `delta_f`, and `delta_c` when selecting its PPI++ weight.
+
+Set `ppi_plus_plus_lrt` to `true` (the default) to compute the LRT-weighted PPI++ estimator. It importance-weights third-component observations by a normal likelihood ratio using the configured true prediction means and variances before selecting the PPI++ weight.
 
 From the project root:
 
