@@ -10,8 +10,7 @@ import pandas as pd
 from scipy.stats import norm
 
 from utils.data_generation import generate_two_estimator_data
-from utils.estimators import psi_two_estimator, ci_tau_two_estimator
-
+from utils.coverage import psi_two_estimator, ci_tau_two_estimator
 
 def run_one(params: dict, seed: int | None = None) -> dict:
     """Run one independent replicate and return a flat result row."""
