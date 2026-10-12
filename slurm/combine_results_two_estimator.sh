@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # Combine completed two-estimator EB simulation chunks.
 # Usage: sbatch slurm/combine_results.sh [results-directory]
