@@ -192,3 +192,4 @@ def ppi_plus_plus_oracle(
     cov_yf = rho * sigma1 * sigma2
     lam = cov_yf / ((1 + n1 / n2) * var_f)
     return ppi(y, float(lam))
+

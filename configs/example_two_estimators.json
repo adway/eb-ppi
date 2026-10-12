@@ -1,0 +1,25 @@
+
+{
+  "n_1": [5, 50, 100, 500, 1000],
+  "n_2_multiplier": [1, 2, 5, 10],
+  "mu": 0,
+  "delta_f": [0, 0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.075, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5],
+  "sigma1": 1,
+  "sigma2": 1,
+  "rho": 0,
+  "alpha": 0.05,
+  "gamma": 0.05,
+  "replicates": 10000,
+  "seed": 42,
+  "jobs": 100,
+  "output_dir": "results",
+  "log_dir": "run_logs",
+  "slurm": {
+    "job_name": "eb_ci_simulation",
+    "partition": "standard",
+    "account": "stats_dept1",
+    "time_minutes": 360,
+    "memory": "16G",
+    "cpus_per_task": 1
+  }
+}
